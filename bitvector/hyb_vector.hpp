@@ -26,7 +26,9 @@
  *     - replace std::vectors by int_vectors
  *     - add support for rank0
  *     - added naive implementation of method get_int
- *     - TODO: added a naive implementation of select
+ * 
+ *   Eric Chiu made the following changes:
+ *     - added implementation of select queries
 */
 #ifndef INCLUDED_SDSL_HYB_VECTOR
 #define INCLUDED_SDSL_HYB_VECTOR
@@ -35,6 +37,7 @@
 #include "util.hpp"
 #include "iterators.hpp"
 #include "io.hpp"
+#include <cassert>
 #include <cstdlib>
 #include <vector>
 #include <algorithm>
@@ -49,7 +52,8 @@ template<uint8_t t_b = 1, uint32_t k_sb_rate = 16, uint32_t k_lookup_size_ratio 
 
 //! A hybrid-encoded compressed bitvector representation
 /*!
- * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
+ * \tparam k_sblock_rate        Superblock rate (number of blocks inside superblock)
+ * \tparam k_lookup_size_ratio  For select support, restricts the lookup table size to at most 1 / k_lookup_size_ratio of the uncompressed bitvector.
  *
  * References:
  *  - Juha Karkkainen, Dominik Kempa and Simon J. Puglisi.
@@ -621,10 +625,10 @@ struct rank_result<0> {
 
 //! Rank_support for the hyb_vector class
 /*!
- * \tparam t_b      The bit pattern of size one. (so `0` or `1`)
- * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
+ * \tparam t_b                  The bit pattern of size one. (so `0` or `1`)
+ * \tparam k_sblock_rate        Superblock rate (number of blocks inside superblock)
+ * \tparam k_lookup_size_ratio  For select support, restricts the lookup table size to at most 1 / k_lookup_size_ratio of the uncompressed bitvector.
  */
-// TODO:
 template<uint8_t t_b, uint32_t k_sblock_rate, uint32_t k_lookup_size_ratio>
 class rank_support_hyb
 {
@@ -822,9 +826,9 @@ class rank_support_hyb
 
 //! Select support for the hyb_vector class
 /*!
- * \tparam t_b            The bit pattern of size one. (so `0` or `1`)
- * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
- * TODO: implement select queries, currently this is dummy class.
+ * \tparam t_b                  The bit pattern of size one. (so `0` or `1`)
+ * \tparam k_sblock_rate        Superblock rate (number of blocks inside superblock)
+ * \tparam k_lookup_size_ratio  For select support, restricts the lookup table size to at most 1 / k_lookup_size_ratio of the uncompressed bitvector.
  */
 template<uint8_t t_b, uint32_t k_sblock_rate, uint32_t k_lookup_size_ratio>
 class select_support_hyb
@@ -855,18 +859,7 @@ class select_support_hyb
         {
             assert(m_v != nullptr);
             assert(i > 0);
-#ifndef NDEBUG
-            const size_type n_sblocks = m_v->m_sblock_header.size() / bit_vector_type::k_sblock_header_size;
-            const uint8_t* sblock_header = ((const uint8_t*)(m_v->m_sblock_header.data())) + ((n_sblocks - 1) * bit_vector_type::k_sblock_header_size);
-            const uint16_t* block_headers = (const uint16_t*)(sblock_header + 8);
-            size_type total_ones = m_v->m_hblock_header[m_v->m_hblock_header.size() - 1];
-            total_ones += *((uint32_t*)sblock_header + 1);
-            for (size_type i = 0; i <= k_sblock_rate; ++i) {
-                total_ones += (*(block_headers + i)) & 0x1ff;
-            }
-            size_type total_b = (t_b * total_ones) + ((1 - t_b) * (m_v->size() - total_ones));
-            assert(i <= total_b);
-#endif
+            assert(i <= (rank_support_hyb<t_b, k_sblock_rate, k_lookup_size_ratio>(m_v).rank(m_v->size())));
             
             // Block sizes
             size_type sblock_bits = k_sblock_rate * bit_vector_type::k_block_size;

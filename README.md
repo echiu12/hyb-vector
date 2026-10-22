@@ -6,6 +6,7 @@ Description
 
 [bitvector/hyb_vector.hpp](bitvector/hyb_vector.hpp) is a header-only
 implementation of a hybrid bitvector that supports efficient rank and select queries.
+It builds on [this](https://github.com/simongog/sdsl-lite/blob/master/include/sdsl/hyb_vector.hpp) hybrid bitvector implementation from [SDSL](https://github.com/simongog/sdsl-lite/tree/master).
 In practice, it achieves excellent query times while also being highly space efficient.
 
 Detailed descriptions and experimental results are given in the following papers:

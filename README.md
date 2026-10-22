@@ -1,4 +1,8 @@
-# Description
+Hybrid Bitvector with Rank and Select Queries
+===
+
+Description
+---
 
 [bitvector/hyb_vector.hpp](bitvector/hyb_vector.hpp) is a header-only
 implementation of a hybrid bitvector that supports efficient rank and select queries.
@@ -34,14 +38,17 @@ Detailed descriptions and experimental results are given in the following papers
 The latest version of the hybrid bitvector with rank and select queries is
 available at https://github.com/echiu12/hyb-vector.
 
-# Usage
+Usage
+---
 
 To use this code, install [SDSL](https://github.com/simongog/sdsl-lite/tree/master)
 and replace their [sdsl/hyb_vector.hpp](https://github.com/simongog/sdsl-lite/blob/master/include/sdsl/hyb_vector.hpp)
 with our [bitvector/hyb_vector.hpp](bitvector/hyb_vector.hpp).
 The `sdsl::hyb_vector` class should now support both rank and select queries.
 
-# Tests and Benchmarks
+Tests and Benchmarks
+---
+
 For tests and benchmarks, run:
 ```
 ./run.sh
